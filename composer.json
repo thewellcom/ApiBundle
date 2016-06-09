@@ -1,0 +1,17 @@
+{
+    "name": "thewellcom/api-bundle",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "description": "Create your API REST's project quickly this bundle",
+    "keywords": ["symfony2", "symfony3"],
+    "homepage": "https://github.com/twcsamar/ApiBundle",
+    "authors": [
+        {
+            "name": "Stephen Samar",
+            "homepage": "http://www.thewellcom.fr"
+        }
+    ],
+    "autoload": {
+        "psr-4": { "TheWellCom\\ApiBundle\\": "" }
+    }
+}
