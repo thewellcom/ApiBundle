@@ -37,6 +37,18 @@ class EntityRepository
         return $qb->getQuery()->getSingleResult();
     }
 
+    public function whereLike($qb, $criteria, $criteriaVarName, $criteriaVal)
+    {
+        return $qb->where($qb->expr()->like('u.'.$criteria, ':'.$criteriaVarName))
+            ->setParameter($criteriaVarName, '%'.$criteriaVal.'%');
+    }
+
+    public function andWhereLike($qb, $criteria, $criteriaVarName, $criteriaVal)
+    {
+        return $qb->andWhere($qb->expr()->like('u.'.$criteria, ':'.$criteriaVarName))
+            ->setParameter($criteriaVarName, '%'.$criteriaVal.'%');
+    }
+
     public function getCollectionQuery(array $criteria)
     {
         $qb = $this->em->createQueryBuilder()
@@ -50,8 +62,23 @@ class EntityRepository
 
         if ($criteria) {
             $criteria0 = $this->underscore2CamelCase(array_keys($criteria)[0]);
-            $qb->where($qb->expr()->like('u.'.$criteria0, ':'.$criteria0))
-                ->setParameter($criteria0, '%'.$criteria[array_keys($criteria)[0]].'%');
+
+            if (is_array($criteria0Values = $criteria[array_keys($criteria)[0]])) {
+                $criteria0Value = $criteria0Values[0];
+                $criteriaVar = $criteria0.'0';
+
+                $qb = $this->whereLike($qb, $criteria0, $criteriaVar, $criteria0Value);
+
+                unset($criteria0Values[0]);
+
+                if ($criteria0Values) {
+                    foreach ($criteria0Values as $key => $criteria0Value) {
+                        $qb = $this->andWhereLike($qb, $criteria0, $criteria0Value.$key, $criteria0Value);
+                    }
+                }
+            } else {
+                $qb = $this->whereLike($qb, $criteria0, $criteria0, $criteria0Values);
+            }
 
             unset($criteria[array_keys($criteria)[0]]);
 
@@ -62,8 +89,7 @@ class EntityRepository
                     }
 
                     $key = $this->underscore2CamelCase(array_keys($criteria)[0]);
-                    $qb->andWhere($qb->expr()->like('u.'.$key, ':'.$key))
-                        ->setParameter($key, '%'.$value.'%');
+                    $qb = $this->andWhereLike($qb, $key, $key, $value);
                 }
             };
         }
